@@ -1,17 +1,15 @@
-package ru.skypro.homework.dto;
+package ru.skypro.homework.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
-@Data
-@Schema(description = "Регистрация пользователя")
-public class Register {
+@Schema(description = "Информация о пользователе")
+public class User {
+
+    @Schema(description = "ID пользователя", example = "1")
+    private Integer id;
 
     @Schema(description = "Логин пользователя", example = "user@example.com")
-    private String username;
-
-    @Schema(description = "Пароль пользователя", example = "1q2w3e")
-    private String password;
+    private String email;
 
     @Schema(description = "Имя пользователя", example = "Иван")
     private String firstName;
@@ -23,22 +21,25 @@ public class Register {
     private String phone;
 
     @Schema(description = "Роль пользователя", example = "пользователь")
-    private Role role;
+    private String role;
 
-    public String getUsername() {
-        return username;
+    @Schema(description = "Аватар пользователя", example = "-картинка-")
+    private String image;
+
+    public Integer getId() {
+        return id;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
-    public String getPassword() {
-        return password;
+    public String getEmail() {
+        return email;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getFirstName() {
@@ -65,11 +66,19 @@ public class Register {
         this.phone = phone;
     }
 
-    public Role getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
