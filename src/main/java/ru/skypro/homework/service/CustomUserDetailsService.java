@@ -12,23 +12,23 @@ import ru.skypro.homework.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-
     private final UserRepository repo;
 
     @Override
-    public UserDetails loadUserByUsername(String username) {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return repo.findByUsername(username)
                 .map(this::toUserDetails)
-                .orElseThrow(() -> {
-                    String message = "User with username " + username + " was not found.";
-                    throw new UsernameNotFoundException(message);
-                });
+                .orElseThrow(() -> new UsernameNotFoundException("User with username " + username + " was not found."));
     }
 
     private UserDetails toUserDetails(UserEntity e) {
-        return User.withUsername(e.getUsername())
+        String username = e.getUsername();
+        if (username == null || username.trim().length() == 0) {
+            throw new IllegalStateException("User without username cannot be authenticated");
+        }
+        return User.withUsername(username)
                 .password(e.getPassword())
-                .authorities(e.getRole().name())
+                .authorities("ROLE_" + e.getRole().name())
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)

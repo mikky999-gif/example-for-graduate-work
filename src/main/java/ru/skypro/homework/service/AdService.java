@@ -9,12 +9,16 @@ import org.springframework.security.core.Authentication;
 
 import java.util.Optional;
 
-public interface IAdService {
+public interface AdService {
     Ads getAllAds(int offset, int limit);
     Optional<ExtendedAd> getAdById(long id);
     Ads getMyAds(Authentication auth);
-    Ad createAd(CreateOrUpdateAd data, Authentication auth);
     Ad updateAd(long id, CreateOrUpdateAd data, Authentication auth);
-    void deleteAd(long id, Authentication auth);
     void updateImage(long id, MultipartFile image, Authentication auth);
+    void deleteAd(long id);
+    Ad createAd(
+            CreateOrUpdateAd data,
+            MultipartFile image,
+            Authentication auth
+    );
 }

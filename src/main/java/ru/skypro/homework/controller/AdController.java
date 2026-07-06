@@ -13,7 +13,7 @@ import ru.skypro.homework.ad.Ad;
 import ru.skypro.homework.ad.Ads;
 import ru.skypro.homework.ad.CreateOrUpdateAd;
 import ru.skypro.homework.ad.ExtendedAd;
-import ru.skypro.homework.service.IAdService;
+import ru.skypro.homework.service.AdService;
 
 import java.util.Map;
 
@@ -25,7 +25,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 @Tag(name = "Объявления")
 public class AdController {
 
-    private final IAdService adService;
+    private final AdService adService;
 
     @GetMapping
     @Operation(summary = "Получение всех объявлений")
@@ -55,12 +55,7 @@ public class AdController {
             @RequestPart(required = true) CreateOrUpdateAd data,
             @RequestPart(value = "image", required = false) MultipartFile image,
             Authentication auth) {
-
-        Ad ad = adService.createAd(data, auth);
-
-        if (image != null) {
-            this.saveImage(ad.getPk(), image);
-        }
+        Ad ad = adService.createAd(data, image, auth);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("id", ad.getPk()));
@@ -88,11 +83,9 @@ public class AdController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление объявления")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<Void> deleteAd(
-            @PathVariable long id,
-            Authentication auth) {
-        adService.deleteAd(id, auth);
+    @PreAuthorize("hasRole('ADMIN') or @adServiceImpl.isOwner(#id, principal?.username)")
+    public ResponseEntity<Void> deleteAd(@PathVariable long id) {
+        adService.deleteAd(id);
         return ResponseEntity.noContent().build();
     }
 

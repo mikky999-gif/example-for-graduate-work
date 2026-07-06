@@ -14,14 +14,14 @@ import ru.skypro.homework.mapper.CommentMapper;
 import ru.skypro.homework.repository.AdRepository;
 import ru.skypro.homework.repository.CommentRepository;
 import ru.skypro.homework.repository.UserRepository;
-import ru.skypro.homework.service.ICommentService;
+import ru.skypro.homework.service.CommentService;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CommentServiceImpl implements ICommentService {
+public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepo;
     private final AdRepository adRepo;

@@ -5,7 +5,7 @@ import ru.skypro.homework.comment.Comments;
 import ru.skypro.homework.comment.CreateOrUpdateComment;
 import org.springframework.security.core.Authentication;
 
-public interface ICommentService {
+public interface CommentService {
     Comments getCommentsForAd(long adId);
     Comments getMyAds(Authentication auth);
     Comment createComment(long adId, CreateOrUpdateComment data, Authentication auth);

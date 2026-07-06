@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.skypro.homework.service.IUserService;
+import ru.skypro.homework.service.UserService;
 import ru.skypro.homework.user.NewPassword;
 import ru.skypro.homework.user.UpdateUser;
 import ru.skypro.homework.user.User;
@@ -21,7 +21,7 @@ import javax.validation.Valid;
 @Tag(name = "Пользователи")
 public class UserController {
 
-    private final IUserService userService;
+    private final UserService userService;
 
     @GetMapping("/me")
     @Operation(summary = "Профиль пользователя")

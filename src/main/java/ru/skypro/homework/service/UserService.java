@@ -7,7 +7,7 @@ import ru.skypro.homework.user.User;
 import ru.skypro.homework.dto.Register;
 import org.springframework.security.core.Authentication;
 
-public interface IUserService {
+public interface UserService {
     User getCurrentUser(Authentication auth);
     User updateProfile(UpdateUser data, Authentication auth);
     Boolean changePassword(NewPassword data, Authentication auth);

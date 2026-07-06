@@ -13,7 +13,7 @@ import ru.skypro.homework.comment.Comment;
 import ru.skypro.homework.comment.Comments;
 import ru.skypro.homework.comment.CreateOrUpdateComment;
 import ru.skypro.homework.dto.IdDto;
-import ru.skypro.homework.service.ICommentService;
+import ru.skypro.homework.service.CommentService;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ import ru.skypro.homework.service.ICommentService;
 @Tag(name = "Комментарии")
 public class CommentController {
 
-    private final ICommentService commentService;
+    private final CommentService commentService;
 
     @GetMapping
     @Operation(summary = "Получение комментариев")
@@ -44,7 +44,7 @@ public class CommentController {
 
     @PatchMapping("/{commentId}")
     @Operation(summary = "Редактирование комментария")
-    @PreAuthorize("hasRole('ADMIN') or #commentId == authentication.principal.id")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Comment> updateComment(
             @PathVariable long adId,
             @PathVariable long commentId,
@@ -55,7 +55,7 @@ public class CommentController {
 
     @DeleteMapping("/{commentId}")
     @Operation(summary = "Удаление комментария")
-    @PreAuthorize("hasRole('ADMIN') or #commentId == authentication.principal.id")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> deleteComment(
             @PathVariable long adId,
             @PathVariable long commentId,
@@ -63,4 +63,5 @@ public class CommentController {
         commentService.deleteComment(adId, commentId, auth);
         return ResponseEntity.noContent().build();
     }
+
 }
