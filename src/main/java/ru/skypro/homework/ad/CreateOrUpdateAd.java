@@ -1,6 +1,5 @@
 package ru.skypro.homework.ad;
 
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Создание и редактирование объявлений")
@@ -9,11 +8,14 @@ public class CreateOrUpdateAd {
     @Schema(description = "Заголовок", example = "Велосипед")
     private String title;
 
-    @Schema(description = "Описание", example = "прекрасный товар, практически новый")
+    @Schema(description = "Описание", example = "Практически новый")
     private String description;
 
     @Schema(description = "Цена", example = "100")
     private Integer price;
+
+    @Schema(description = "Ссылка на картинку", example = "https://...")
+    private String image;
 
     public String getTitle() {
         return title;
@@ -37,5 +39,13 @@ public class CreateOrUpdateAd {
 
     public void setPrice(Integer price) {
         this.price = price;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

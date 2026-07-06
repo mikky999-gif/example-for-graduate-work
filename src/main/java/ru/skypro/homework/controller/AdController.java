@@ -1,131 +1,102 @@
 package ru.skypro.homework.controller;
 
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.ad.Ad;
 import ru.skypro.homework.ad.Ads;
 import ru.skypro.homework.ad.CreateOrUpdateAd;
 import ru.skypro.homework.ad.ExtendedAd;
-import ru.skypro.homework.dto.Register;
+import ru.skypro.homework.service.IAdService;
 
-
-import javax.servlet.http.Part;
-import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/ads")
 @Tag(name = "Объявления")
 public class AdController {
 
-    @GetMapping("")
-    @Operation(summary = "Получение всех объявлений",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK")
-            })
-    public ResponseEntity<Ads> getAllAds(Pageable pageable) {
+    private final IAdService adService;
 
-        return ResponseEntity.ok(new Ads());
-    }
-
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Добавление объявления",
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Created"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<Map<String, Object>> createAd(
-            @RequestPart CreateOrUpdateAd properties,
-            @RequestPart(required = false) Part image
-    ) {
-
-        Integer adId = 1;
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", adId);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Получение информации об объявлении",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "404", description = "Not found"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<ExtendedAd> getAdById(@PathVariable Integer id) {
-
-        return ResponseEntity.ok(new ExtendedAd());
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Удаление объявления",
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "No Content"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden"),
-                    @ApiResponse(responseCode = "404", description = "Not found"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<Void> deleteAd(@PathVariable Integer id) {
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/{id}")
-    @Operation(summary = "Обновление информации об объявлении",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden"),
-                    @ApiResponse(responseCode = "404", description = "Not found"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<Ad> updateAd(
-            @PathVariable Integer id,
-            @RequestBody CreateOrUpdateAd request
-    ) {
-
-        return ResponseEntity.ok(new Ad());
+    @GetMapping
+    @Operation(summary = "Получение всех объявлений")
+    public ResponseEntity<Ads> getAllAds(
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(adService.getAllAds(offset, limit));
     }
 
     @GetMapping("/me")
-    @Operation(summary = "Получение объявлений авторизованного пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<Ads> getMyAds() {
-
-        return ResponseEntity.ok(new Ads());
+    @Operation(summary = "Получение моих объявлений")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Ads> getMyAds(Authentication auth) {
+        return ResponseEntity.ok(adService.getMyAds(auth));
     }
 
-    @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Обновление картинки объявления",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden"),
-                    @ApiResponse(responseCode = "404", description = "Not found"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<ByteArrayResource> uploadAdImage(
-            @PathVariable Integer id,
-            @RequestPart Part image
-    ) {
+    @GetMapping("/{id}")
+    @Operation(summary = "Просмотр объявления")
+    public ResponseEntity<ExtendedAd> getAdById(@PathVariable long id) {
+        return adService.getAdById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-        byte[] emptyImage = {};
-        ByteArrayResource resource = new ByteArrayResource(emptyImage);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_PNG);
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(resource);
+    @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createAd(
+            @RequestPart(required = true) CreateOrUpdateAd data,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            Authentication auth) {
+
+        Ad ad = adService.createAd(data, auth);
+
+        if (image != null) {
+            this.saveImage(ad.getPk(), image);
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("id", ad.getPk()));
+    }
+
+    @PatchMapping(value = "/{id}/image", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> updateImage(
+            @PathVariable long id,
+            @RequestPart MultipartFile image,
+            Authentication auth) {
+
+        adService.updateImage(id, image, auth);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Редактирование объявления")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    public ResponseEntity<Ad> updateAd(
+            @PathVariable long id,
+            @RequestBody CreateOrUpdateAd data,
+            Authentication auth) {
+        return ResponseEntity.ok(adService.updateAd(id, data, auth));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Удаление объявления")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    public ResponseEntity<Void> deleteAd(
+            @PathVariable long id,
+            Authentication auth) {
+        adService.deleteAd(id, auth);
+        return ResponseEntity.noContent().build();
+    }
+
+    private void saveImage(long adId, MultipartFile image) {
+        System.out.println("Saving image for ad#" + adId);
     }
 }

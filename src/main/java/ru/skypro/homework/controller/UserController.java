@@ -1,73 +1,61 @@
 package ru.skypro.homework.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import ru.skypro.homework.service.IUserService;
 import ru.skypro.homework.user.NewPassword;
 import ru.skypro.homework.user.UpdateUser;
 import ru.skypro.homework.user.User;
 
-
-import javax.servlet.http.Part;
+import javax.validation.Valid;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 @Tag(name = "Пользователи")
 public class UserController {
 
-    @GetMapping("/me")
-    @Operation(summary = "Получение информации об авторизованном пользователе",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<User> getCurrentUser() {
+    private final IUserService userService;
 
-        return ResponseEntity.ok(new User());
+    @GetMapping("/me")
+    @Operation(summary = "Профиль пользователя")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<User> getCurrentUser(Authentication auth) {
+        return ResponseEntity.ok(userService.getCurrentUser(auth));
     }
 
     @PatchMapping("/me")
-    @Operation(summary = "Обновление информации об авторизованном пользователе",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<UpdateUser> updateUser(@RequestBody UpdateUser request) {
-
-        return ResponseEntity.ok(request);
+    @Operation(summary = "Редактирование профиля")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<User> updateUser(
+            @RequestBody UpdateUser data,
+            Authentication auth) {
+        return ResponseEntity.ok(userService.updateProfile(data, auth));
     }
 
     @PostMapping("/set_password")
-    @Operation(summary = "Обновление пароля",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Forbidden")
-            })
-    public ResponseEntity<Void> changePassword(@RequestBody NewPassword request) {
-
-        return ResponseEntity.ok().build();
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<NewPassword> changePassword(
+            @Valid @RequestBody NewPassword data,
+            Authentication auth) {
+        userService.changePassword(data, auth);
+        return ResponseEntity.ok(new NewPassword());
     }
 
-    @PatchMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Обновление аватара авторизованного пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "OK"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized")
-            })
-    public ResponseEntity<ByteArrayResource> uploadAvatar(@RequestPart Part image) {
+    @PatchMapping("/me/image")
+    @Operation(summary = "Загрузка аватара")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> uploadAvatar(
+            @RequestPart MultipartFile image,
+            Authentication auth) {
 
-        byte[] emptyImage = {};
-        ByteArrayResource resource = new ByteArrayResource(emptyImage);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.IMAGE_PNG);
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(resource);
+        userService.uploadAvatar(image, auth);
+        return ResponseEntity.noContent().build();
     }
 }

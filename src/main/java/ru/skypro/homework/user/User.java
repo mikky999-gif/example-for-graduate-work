@@ -1,6 +1,7 @@
 package ru.skypro.homework.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import ru.skypro.homework.dto.Role;
 
 @Schema(description = "Информация о пользователе")
 public class User {
@@ -21,7 +22,7 @@ public class User {
     private String phone;
 
     @Schema(description = "Роль пользователя", example = "пользователь")
-    private String role;
+    private Role role;
 
     @Schema(description = "Аватар пользователя", example = "-картинка-")
     private String image;
@@ -66,11 +67,11 @@ public class User {
         this.phone = phone;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 

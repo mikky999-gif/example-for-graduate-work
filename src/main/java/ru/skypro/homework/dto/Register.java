@@ -1,28 +1,33 @@
 package ru.skypro.homework.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
-@Data
+import javax.validation.constraints.Size;
+
+
 @Schema(description = "Регистрация пользователя")
 public class Register {
 
-    @Schema(description = "Логин пользователя", example = "user@example.com")
+    @Schema(description = "логин", example = "user@example.com")
+    @Size(min = 4, max = 32)
     private String username;
 
-    @Schema(description = "Пароль пользователя", example = "1q2w3e")
+    @Schema(description = "пароль", example = "1q2w3e")
+    @Size(min = 8, max = 16)
     private String password;
 
-    @Schema(description = "Имя пользователя", example = "Иван")
+    @Schema(description = "имя пользователя", example = "Иван")
+    @Size(min = 2, max = 16)
     private String firstName;
 
-    @Schema(description = "Фамилия пользователя", example = "Иванов")
+    @Schema(description = "фамилия пользователя", example = "Иванов")
+    @Size(min = 2, max = 16)
     private String lastName;
 
-    @Schema(description = "Телефон пользователя", example = "+79000000000")
+    @Schema(description = "телефон пользователя", example = "+79000000000")
     private String phone;
 
-    @Schema(description = "Роль пользователя", example = "пользователь")
+    @Schema(description = "роль пользователя", example = "пользователь")
     private Role role;
 
     public String getUsername() {
