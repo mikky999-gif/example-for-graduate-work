@@ -1,10 +1,12 @@
 package ru.skypro.homework.service.impl;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.ad.Ad;
@@ -13,35 +15,40 @@ import ru.skypro.homework.ad.CreateOrUpdateAd;
 import ru.skypro.homework.ad.ExtendedAd;
 import ru.skypro.homework.entity.AdEntity;
 import ru.skypro.homework.entity.UserEntity;
+import ru.skypro.homework.exception.ApplicationException;
+import ru.skypro.homework.exception.ResourceNotFoundException;
 import ru.skypro.homework.mapper.AdMapper;
 import ru.skypro.homework.repository.AdRepository;
 import ru.skypro.homework.repository.UserRepository;
-import ru.skypro.homework.service.IAdService;
+import ru.skypro.homework.service.AdService;
 import org.springframework.core.env.Environment;
-
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class AdServiceImpl implements IAdService {
+public class AdServiceImpl implements AdService {
+
+    @Qualifier("passwordEncoder")
+    private final PasswordEncoder encoder;
+
+    private final UserRepository userRepo;
 
     private final AdRepository adRepo;
-    private final UserRepository userRepo;
     private final AdMapper adMapper;
 
     private final Environment env;
 
     public AdServiceImpl(
-            AdRepository adRepo,
+            PasswordEncoder encoder, AdRepository adRepo,
             UserRepository userRepo,
             AdMapper adMapper,
             Environment env) {
+        this.encoder = encoder;
 
         this.adRepo = adRepo;
         this.userRepo = userRepo;
@@ -70,31 +77,49 @@ public class AdServiceImpl implements IAdService {
     }
 
     @Override
-    public Ad createAd(CreateOrUpdateAd data, Authentication auth) {
+    public Ad createAd(
+            CreateOrUpdateAd data,
+            MultipartFile image,
+            Authentication auth) {
+
         AdEntity entity = adMapper.dtoToEntity(data);
         entity.setAuthor(getCurrentUser(auth));
+
+        if (image != null) {
+            String filename = saveImage(image);
+            entity.setImageUrl(filename);
+        }
+
         return adMapper.entityToDto(adRepo.save(entity));
     }
 
     @Override
     public void updateImage(long id, MultipartFile image, Authentication auth) {
         AdEntity ad = adRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ad not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("AdEntity", id));
 
         checkOwnership(ad, auth);
         String filename = saveImage(image);
         ad.setImageUrl(filename);
         adRepo.save(ad);
     }
+
     private String saveImage(MultipartFile file) {
         try {
-
             byte[] bytes = file.getBytes();
 
             String originalName = file.getOriginalFilename();
-            String extension = Objects.requireNonNull(originalName).substring(originalName.lastIndexOf('.')).toLowerCase();
+            if (originalName == null || !originalName.contains(".")) {
+                throw new IllegalArgumentException("Invalid file name: missing extension");
+            }
+
+            String ext = originalName.substring(originalName.lastIndexOf('.'));
+            if (!ext.equalsIgnoreCase(".jpg") && !ext.equalsIgnoreCase(".jpeg") && !ext.equalsIgnoreCase(".png")) {
+                throw new IllegalArgumentException("Only JPEG/JPG/PNG images allowed");
+            }
+
             String uuid = UUID.randomUUID().toString();
-            String filename = uuid + extension;
+            String filename = uuid + ext;
 
             Path root = Paths.get(env.getProperty("app.images.root-path"));
             Files.createDirectories(root);
@@ -102,14 +127,14 @@ public class AdServiceImpl implements IAdService {
 
             return env.getProperty("app.images.url-prefix") + filename;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store image", e);
+            throw new ApplicationException("Failed to store image", e);
         }
     }
 
     @Override
     public Ad updateAd(long id, CreateOrUpdateAd data, Authentication auth) {
         AdEntity existing = adRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ad not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("AdEntity", id));
 
         checkOwnership(existing, auth);
 
@@ -118,12 +143,8 @@ public class AdServiceImpl implements IAdService {
     }
 
     @Override
-    public void deleteAd(long id, Authentication auth) {
-        AdEntity existing = adRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ad not found"));
-
-        checkOwnership(existing, auth);
-        adRepo.delete(existing);
+    public void deleteAd(long id) {
+        adRepo.deleteById(id);
     }
 
     private Ads mapToAds(Page<AdEntity> page) {
@@ -145,10 +166,20 @@ public class AdServiceImpl implements IAdService {
     private void checkOwnership(AdEntity ad, Authentication auth) {
         UserEntity current = getCurrentUser(auth);
 
-        if (!(auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) &&
-                !ad.getAuthor().getId().equals(current.getId())) {
+        if (!auth.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))
+                && !ad.getAuthor().getId().equals(current.getId())) {
             throw new AccessDeniedException("Forbidden");
         }
+    }
+
+    public boolean isOwner(long adId, String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+        AdEntity ad = adRepo.findById(adId)
+                .orElseThrow(() -> new ResourceNotFoundException("AdEntity", adId));
+
+        return ad.getAuthor().getUsername().equals(username);
     }
 }

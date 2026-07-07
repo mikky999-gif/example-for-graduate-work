@@ -2,11 +2,13 @@ package ru.skypro.homework.entity;
 
 import javax.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.skypro.homework.dto.Role;
 
 @Entity
 @Table(name = "users")
 @Data
+@NoArgsConstructor
 public class UserEntity {
 
     @Id

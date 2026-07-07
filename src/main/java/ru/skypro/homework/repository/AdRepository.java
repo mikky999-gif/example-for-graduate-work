@@ -1,11 +1,11 @@
-package ru.skypro.homework.repository;
+    package ru.skypro.homework.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import ru.skypro.homework.entity.AdEntity;
+    import org.springframework.data.domain.Page;
+    import org.springframework.data.domain.Pageable;
+    import org.springframework.data.jpa.repository.JpaRepository;
+    import ru.skypro.homework.entity.AdEntity;
 
-public interface AdRepository extends JpaRepository<AdEntity, Long> {
+    public interface AdRepository extends JpaRepository<AdEntity, Long> {
 
-    Page<AdEntity> findByAuthorId(long userId, Pageable pageable);
-}
+        Page<AdEntity> findByAuthorId(long userId, Pageable pageable);
+    }
