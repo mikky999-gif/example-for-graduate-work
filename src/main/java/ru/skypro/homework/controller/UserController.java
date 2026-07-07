@@ -15,6 +15,10 @@ import ru.skypro.homework.user.User;
 
 import javax.validation.Valid;
 
+        //      * Контроллер личного кабинета пользователя.
+        //      * Содержит методы для просмотра и редактирования собственного профиля, смены пароля и загрузки аватара.
+
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")

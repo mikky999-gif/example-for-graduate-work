@@ -34,7 +34,7 @@ public class UserEntity {
     @Column(nullable = false)
     private Role role;
 
-    @Column(nullable = true)
+    @Column(nullable = true, name = "image_url")
     private String imageUrl;
 
     public UserEntity(String username, String password, String firstName, String lastName, String phone, Role role) {

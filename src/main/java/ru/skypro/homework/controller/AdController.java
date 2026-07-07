@@ -15,10 +15,16 @@ import ru.skypro.homework.ad.CreateOrUpdateAd;
 import ru.skypro.homework.ad.ExtendedAd;
 import ru.skypro.homework.service.AdService;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
+    //      * REST-контроллер для управления объявлениями.
+    //      * Предоставляет эндпоинты для создания, чтения, обновления и удаления товаров.
+    //      * Все операции записи требуют Basic-аутентификации.
+
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/ads")
@@ -26,6 +32,11 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 public class AdController {
 
     private final AdService adService;
+
+    //      * Возвращает пагинированный список всех объявлений.
+    //      * @param offset смещение (номер страницы)
+    //      * @param limit количество элементов на странице
+    //      * @return коллекцию объявлений Ads
 
     @GetMapping
     @Operation(summary = "Получение всех объявлений")
@@ -35,12 +46,20 @@ public class AdController {
         return ResponseEntity.ok(adService.getAllAds(offset, limit));
     }
 
+    //     * Возвращает список объявлений текущего авторизованного пользователя.
+    //     * @param auth объект аутентификации Spring Security
+    //     * @return коллекцию собственных объявлений пользователя
+
     @GetMapping("/me")
     @Operation(summary = "Получение моих объявлений")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Ads> getMyAds(Authentication auth) {
         return ResponseEntity.ok(adService.getMyAds(auth));
     }
+
+    //      * Получает подробную информацию об объявлении по идентификатору.
+    //      * @param id уникальный идентификатор объявления (pk)
+    //      * @return Optional с расширенной информацией ExtendedAd
 
     @GetMapping("/{id}")
     @Operation(summary = "Просмотр объявления")
@@ -50,16 +69,28 @@ public class AdController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    //     * Создает новое объявление от имени текущего пользователя.
+    //     * Сохраняет изображение во временную директорию сервера, если файл передан.
+    //     * @param rawData сырые данные из multipart-запроса (поле properties)
+    //     * @param image бинарные данные картинки (может быть null)
+    //     * @param auth данные аутентификации автора
+    //     * @return созданный объект Ad
+
     @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createAd(
-            @RequestPart(required = true) CreateOrUpdateAd data,
+            @RequestPart(value = "properties", required = true) @Valid CreateOrUpdateAd data, // <<<< @Valid
             @RequestPart(value = "image", required = false) MultipartFile image,
             Authentication auth) {
-        Ad ad = adService.createAd(data, image, auth);
 
+        Ad ad = adService.createAd(data, image, auth);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("id", ad.getPk()));
     }
+
+    //     * Обновляет основное изображение объявления.
+    //     * @param id идентификатор объявления
+    //     * @param image новый файл изображения
+    //     * @param auth данные аутентификации владельца
 
     @PatchMapping(value = "/{id}/image", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateImage(
@@ -71,6 +102,13 @@ public class AdController {
         return ResponseEntity.ok().build();
     }
 
+    //     * Обновляет существующее объявление.
+    //     * Проверяет права доступа: изменить может только владелец или ADMIN.
+    //     * @param id идентификатор редактируемого объявления
+    //     * @param data новые значения полей
+    //     * @param auth данные аутентификации
+    //     * @return обновленный объект Ad
+
     @PatchMapping("/{id}")
     @Operation(summary = "Редактирование объявления")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
@@ -81,6 +119,10 @@ public class AdController {
         return ResponseEntity.ok(adService.updateAd(id, data, auth));
     }
 
+    //     * Удаляет объявление.
+    //     * Проверяет права доступа: удалить может только владелец или ADMIN.
+    //     * @param id идентификатор удаляемого объявления
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаление объявления")
     @PreAuthorize("hasRole('ADMIN') or @adServiceImpl.isOwner(#id, principal?.username)")
@@ -89,7 +131,27 @@ public class AdController {
         return ResponseEntity.noContent().build();
     }
 
-    private void saveImage(long adId, MultipartFile image) {
-        System.out.println("Saving image for ad#" + adId);
+    //     * Безопасная конвертация любого значения в Number.
+    //     * Предотвращает ClassCastException при получении строки от фронтенда.
+    //     * @param value любое значение из Map (String, Number, null)
+    //     * @return Number или null, если значение нечисловое
+
+    private Number parseNumber(Object value) {
+        if (value instanceof Number) {
+            return (Number) value;
+        }
+        if (value instanceof String) {
+            try {
+                return Double.parseDouble((String) value); // Работает и для целых
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
+
+    // Старый дебажный метод
+    // private void saveImage(long adId, MultipartFile image) {
+    //     System.out.println("Saving image for ad#" + adId);
+    // }
 }
