@@ -1,14 +1,13 @@
 package ru.skypro.homework.mapper;
 
 import org.mapstruct.*;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.ad.Ad;
 import ru.skypro.homework.ad.CreateOrUpdateAd;
 import ru.skypro.homework.ad.ExtendedAd;
 import ru.skypro.homework.entity.AdEntity;
 
-@Component
+@Mapper(componentModel = "spring")
 public interface AdMapper {
 
     @Mappings({

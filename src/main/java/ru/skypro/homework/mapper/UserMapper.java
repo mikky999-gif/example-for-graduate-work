@@ -1,13 +1,11 @@
 package ru.skypro.homework.mapper;
 
 import org.mapstruct.*;
-import org.springframework.stereotype.Component;
 import ru.skypro.homework.dto.Register;
 import ru.skypro.homework.entity.UserEntity;
 import ru.skypro.homework.user.UpdateUser;
 import ru.skypro.homework.user.User;
 
-@Component
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
