@@ -2,16 +2,22 @@ package ru.skypro.homework.ad;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
+
 @Schema(description = "Создание и редактирование объявлений")
 public class CreateOrUpdateAd {
 
     @Schema(description = "Заголовок", example = "Велосипед")
+    @Size(min = 4, max = 32)
     private String title;
 
     @Schema(description = "Описание", example = "Практически новый")
+    @Size(min = 8, max = 64)
     private String description;
 
     @Schema(description = "Цена", example = "100")
+    @Min(0) // <<< Валидация
     private Integer price;
 
     @Schema(description = "Ссылка на картинку", example = "https://...")

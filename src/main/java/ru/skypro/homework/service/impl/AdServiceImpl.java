@@ -147,6 +147,8 @@ public class AdServiceImpl implements AdService {
         adRepo.deleteById(id);
     }
 
+    //      * Преобразует Page<Entity> в кастомный DTO Ads для корректной сериализации OpenAPI.
+
     private Ads mapToAds(Page<AdEntity> page) {
         Ads result = new Ads();
         result.setCount((int) page.getTotalElements());
@@ -154,14 +156,21 @@ public class AdServiceImpl implements AdService {
         return result;
     }
 
+    //      * Находит сущность пользователя по имени из контекста безопасности.
+
     private UserEntity getCurrentUser(Authentication auth) {
         return userRepo.findByUsername(auth.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
+    //      * Извлекает числовой ID текущего пользователя.
+
     private long getCurrentUserId(Authentication auth) {
         return getCurrentUser(auth).getId();
     }
+
+    //     * Проверяет право собственности на объявление.
+    //     * Выбрасывает AccessDeniedException, если текущий пользователь не является автором и не обладает ролью ADMIN.
 
     private void checkOwnership(AdEntity ad, Authentication auth) {
         UserEntity current = getCurrentUser(auth);

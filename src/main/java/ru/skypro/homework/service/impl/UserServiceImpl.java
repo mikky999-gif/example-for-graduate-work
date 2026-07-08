@@ -50,6 +50,8 @@ public class UserServiceImpl implements UserService {
         repo.save(user);
     }
 
+    //      * Сохраняет загруженный файл в папку /uploads и возвращает относительный путь.
+
     private String saveImage(MultipartFile file) {
         try {
             byte[] bytes = file.getBytes();
@@ -102,6 +104,9 @@ public class UserServiceImpl implements UserService {
         UserEntity saved = repo.save(entity);
         return saved.getId().intValue();
     }
+
+    //     * Внутренний хелпер для получения полной сущности пользователя.
+    //     * Бросает исключение, если пользователь не найден в БД.
 
     private UserEntity getCurrentUserEntity(Authentication auth) {
         String username = auth.getName();

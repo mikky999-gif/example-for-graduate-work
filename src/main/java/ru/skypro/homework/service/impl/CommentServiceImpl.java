@@ -53,9 +53,11 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment updateComment(long adId, long commentId, CreateOrUpdateComment data, Authentication auth) {
         var existing = commentRepo.findById(commentId).orElseThrow();
+
         if (!isAdmin(auth) && !existing.getAuthor().getId().equals(getCurrentUserId(auth))) {
             throw new AccessDeniedException("You can't edit other user's comments");
         }
+
         mapper.updateFromDto(data, existing);
         return mapper.entityToDto(commentRepo.save(existing));
     }
@@ -63,9 +65,11 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(long adId, long commentId, Authentication auth) {
         var comment = commentRepo.findById(commentId).orElseThrow();
+
         if (!isAdmin(auth) && !comment.getAuthor().getId().equals(getCurrentUserId(auth))) {
             throw new AccessDeniedException("You can't delete other user's comments");
         }
+
         commentRepo.deleteById(commentId);
     }
 
@@ -85,6 +89,8 @@ public class CommentServiceImpl implements CommentService {
     private long getCurrentUserId(Authentication auth) {
         return getCurrentUser(auth).getId();
     }
+
+    //      * Проверяет, имеет ли текущий пользователь права администратора.
 
     private boolean isAdmin(Authentication auth) {
         return auth.getAuthorities().stream()

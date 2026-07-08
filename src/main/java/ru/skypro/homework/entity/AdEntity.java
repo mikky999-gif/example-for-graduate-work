@@ -28,6 +28,6 @@ public class AdEntity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = true)
+    @Column(nullable = true, name = "image_url")
     private String imageUrl;
 }

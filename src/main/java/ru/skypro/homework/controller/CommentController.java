@@ -15,6 +15,11 @@ import ru.skypro.homework.comment.CreateOrUpdateComment;
 import ru.skypro.homework.dto.IdDto;
 import ru.skypro.homework.service.CommentService;
 
+        //      * REST-контроллер для управления комментариями.
+        //      * Позволяет пользователям оставлять отзывы под объявлениями.
+        //      * Права на изменение/удаление жестко ограничены владельцем или администратором.
+
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/ads/{adId}/comments")
@@ -44,7 +49,7 @@ public class CommentController {
 
     @PatchMapping("/{commentId}")
     @Operation(summary = "Редактирование комментария")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Comment> updateComment(
             @PathVariable long adId,
             @PathVariable long commentId,
@@ -55,7 +60,7 @@ public class CommentController {
 
     @DeleteMapping("/{commentId}")
     @Operation(summary = "Удаление комментария")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Void> deleteComment(
             @PathVariable long adId,
             @PathVariable long commentId,
@@ -63,5 +68,4 @@ public class CommentController {
         commentService.deleteComment(adId, commentId, auth);
         return ResponseEntity.noContent().build();
     }
-
 }

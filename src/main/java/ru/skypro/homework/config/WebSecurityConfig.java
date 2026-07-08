@@ -24,7 +24,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(antMapper("/swagger-ui/**")).permitAll()
+                      .requestMatchers(antMapper("/swagger-ui/**")).permitAll()
                         .requestMatchers(antMapper("/v3/api-docs/**")).permitAll()
                         .requestMatchers(antMapper("/swagger-resources/**")).permitAll()
                         .requestMatchers(antMapper("/webjars/**")).permitAll()
@@ -33,11 +33,11 @@ public class WebSecurityConfig {
                         .requestMatchers(antMapper("/register")).permitAll()
 
                         .requestMatchers(antMapper(HttpMethod.GET, "/ads")).permitAll()
-                        .requestMatchers(antMapper("/ads/**")).authenticated()
+                   //     .requestMatchers(antMapper("/ads/**")).authenticated()
 
-                        .anyRequest().authenticated())
-
-                .userDetailsService(customUserDetailsService)
+                        .anyRequest().permitAll())
+                .cors().and()
+      //          .userDetailsService(customUserDetailsService)
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
