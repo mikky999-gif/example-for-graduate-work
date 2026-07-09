@@ -24,7 +24,6 @@ public class AdEntity {
     @Column(nullable = false)
     private Integer price;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 

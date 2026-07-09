@@ -8,6 +8,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.ad.Ad;
 import ru.skypro.homework.ad.Ads;
@@ -23,12 +25,15 @@ import ru.skypro.homework.repository.UserRepository;
 import ru.skypro.homework.service.AdService;
 import org.springframework.core.env.Environment;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @Service
 public class AdServiceImpl implements AdService {
@@ -90,7 +95,8 @@ public class AdServiceImpl implements AdService {
             entity.setImageUrl(filename);
         }
 
-        return adMapper.entityToDto(adRepo.save(entity));
+        AdEntity saved = adRepo.save(entity);
+        return adMapper.entityToDto(saved);
     }
 
     @Override

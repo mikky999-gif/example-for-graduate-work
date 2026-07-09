@@ -71,20 +71,18 @@ public class AdController {
 
     //     * Создает новое объявление от имени текущего пользователя.
     //     * Сохраняет изображение во временную директорию сервера, если файл передан.
-    //     * @param rawData сырые данные из multipart-запроса (поле properties)
+    //     * @param Data параметры объявления (заголовок, цена, описание)
     //     * @param image бинарные данные картинки (может быть null)
     //     * @param auth данные аутентификации автора
     //     * @return созданный объект Ad
 
     @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createAd(
-            @RequestPart(value = "properties", required = true) @Valid CreateOrUpdateAd data, // <<<< @Valid
+    public Ad createAd(
+            @RequestPart(value = "properties", required = true) @Valid CreateOrUpdateAd data,
             @RequestPart(value = "image", required = false) MultipartFile image,
             Authentication auth) {
 
-        Ad ad = adService.createAd(data, image, auth);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("id", ad.getPk()));
+        return adService.createAd(data, image, auth);
     }
 
     //     * Обновляет основное изображение объявления.
