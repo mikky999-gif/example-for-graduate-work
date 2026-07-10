@@ -28,6 +28,7 @@ public interface UserMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "username", ignore = true)
     @Mapping(target = "imageUrl", ignore = true)
+    @Mapping(target = "role", ignore = true)
     void updateFromDto(UpdateUser source, @MappingTarget UserEntity dest);
 
 }

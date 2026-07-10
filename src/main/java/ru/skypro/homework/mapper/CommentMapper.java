@@ -30,13 +30,15 @@ public interface CommentMapper {
     CommentEntity dtoToEntity(CreateOrUpdateComment dto);
 
     @AfterMapping
-    default void initCreatedAt(@MappingTarget CommentEntity dest) {
+    default void initCreatedAt(CreateOrUpdateComment dto, @MappingTarget CommentEntity dest) {
         dest.setCreatedAt(Instant.now().toEpochMilli());
     }
 
     @InheritInverseConfiguration
     @Mappings({
-            @Mapping(target = "createdAt", ignore = true)
+            @Mapping(target = "createdAt", ignore = true),
+            @Mapping(target = "author", ignore = true),
+            @Mapping(target = "ad", ignore = true)
     })
     void updateFromDto(CreateOrUpdateComment source, @MappingTarget CommentEntity dest);
 }

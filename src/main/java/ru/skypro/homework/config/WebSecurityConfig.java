@@ -33,11 +33,9 @@ public class WebSecurityConfig {
                         .requestMatchers(antMapper("/register")).permitAll()
 
                         .requestMatchers(antMapper(HttpMethod.GET, "/ads")).permitAll()
-                   //     .requestMatchers(antMapper("/ads/**")).authenticated()
 
                         .anyRequest().permitAll())
                 .cors().and()
-      //          .userDetailsService(customUserDetailsService)
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
