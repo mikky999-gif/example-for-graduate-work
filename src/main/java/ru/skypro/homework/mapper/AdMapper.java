@@ -40,6 +40,9 @@ public interface AdMapper {
     AdEntity dtoToEntity(CreateOrUpdateAd dto);
 
     @InheritInverseConfiguration
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "author", ignore = true)
+    @Mapping(target = "imageUrl", ignore = true)
     void updateFromDto(CreateOrUpdateAd source, @MappingTarget AdEntity dest);
 
     default void saveImage(AdEntity ad, MultipartFile file) {

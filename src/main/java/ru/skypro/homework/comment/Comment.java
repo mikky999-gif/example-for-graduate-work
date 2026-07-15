@@ -8,6 +8,9 @@ public class Comment {
     @Schema(description = "Номер комментария", example = "1256")
     private Integer pk;
 
+    @Schema(description = "Идентификатор комментария", example = "1256")
+    private Integer id;
+
     @Schema(description = "Текст комментария", example = "привет. хочу посмотреть")
     private String text;
 
@@ -29,6 +32,14 @@ public class Comment {
 
     public void setPk(Integer pk) {
         this.pk = pk;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getText() {

@@ -17,7 +17,7 @@ public class CreateOrUpdateAd {
     private String description;
 
     @Schema(description = "Цена", example = "100")
-    @Min(0) // <<< Валидация
+    @Min(0)
     private Integer price;
 
     @Schema(description = "Ссылка на картинку", example = "https://...")
